@@ -16,8 +16,10 @@
     "express": "^4.19.1",
     "express-session": "^1.18.0",
     "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "session-file-store": "^1.5.0",
     "sharp": "^0.33.2",
     "tslib": "^2.6.2",
     "zip-a-folder": "^3.1.6"

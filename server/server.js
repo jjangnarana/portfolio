@@ -11,6 +11,7 @@ const upload = multer({ dest: 'uploads/' });
 const app = express();
 const port = 3002;
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const cors = require('cors');
 
 if (!fs.existsSync(directoryPath)) {
@@ -26,15 +27,17 @@ app.use(
   })
 );
 
+const fileStoreOptions = {};
+
 app.use(
   session({
+    store: new FileStore(fileStoreOptions),
     secret: 'yourSecretKey',
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: true,
+      secure: false,
       httpOnly: true,
-      sameSite: 'none',
     },
   })
 );
@@ -73,12 +76,54 @@ app.post('/convert', upload.array('files'), async (request, response) => {
 app.post('/auth/google/token', async (request, response) => {
   const { access_token } = request.body;
   try {
-    console.log(access_token);
-    response.json({ message: 'Authentication successful' });
+    const fetch = (await import('node-fetch')).default;
+    const userInfoResponse = await fetch(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+
+    if (!userInfoResponse.ok) {
+      throw new Error('Failed to fetch user info');
+    }
+
+    const userInfo = await userInfoResponse.json();
+
+    request.session.user = {
+      id: userInfo.id,
+      name: userInfo.name,
+      email: userInfo.email,
+    };
+
+    response.json({
+      message: 'Authentication successful',
+      user: request.session.user,
+    });
   } catch (error) {
     console.log('Authentication error : ', error);
     response.status(500).json({ message: 'Authentication failed' });
   }
+});
+
+app.get('/api/auth/status', (request, response) => {
+  if (request.session.user) {
+    response.json({
+      isLoggedIn: true,
+      user: request.session.user,
+    });
+  } else {
+    console.log(request.session);
+    response.json({
+      isLoggedIn: false,
+    });
+  }
+});
+app.get('/logout', (request, response) => {
+  request.session.destroy();
+  response.json({ message: 'Logged out' });
 });
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
