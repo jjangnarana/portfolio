@@ -151,7 +151,6 @@ app.get('/about', async (request, response) => {
 
 app.post('/about/update', async (request, response) => {
   const { name, birthday, phone, email, introduction } = request.body;
-  console.log(introduction);
   const { data, error } = await supabase
     .from('about')
     .update({
@@ -161,14 +160,17 @@ app.post('/about/update', async (request, response) => {
       email: email,
       introduction: introduction,
     })
-    .match({ id: 1 });
+    .eq('id', 1)
+    .select();
 
   if (error) {
     console.log(error);
     return response.status(500).send('서버 오류 발생');
   }
+  console.log(data);
   return response.status(200).send(data);
 });
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
