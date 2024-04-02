@@ -149,6 +149,14 @@ app.get('/about', async (request, response) => {
   response.json(data);
 });
 
+app.get('/projects', async (request, response) => {
+  const { data, error } = await supabase.from('projects').select('*');
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
+  response.json(data);
+});
+
 app.post('/about/update', async (request, response) => {
   const { name, birthday, phone, email, introduction } = request.body;
   const { data, error } = await supabase
@@ -161,6 +169,27 @@ app.post('/about/update', async (request, response) => {
       introduction: introduction,
     })
     .eq('id', 1)
+    .select();
+
+  if (error) {
+    console.log(error);
+    return response.status(500).send('서버 오류 발생');
+  }
+  console.log(data);
+  return response.status(200).send(data);
+});
+
+app.post('/projects/create', async (request, response) => {
+  const { name, version, repository, url, description } = request.body;
+  const { data, error } = await supabase
+    .from('projects')
+    .insert({
+      name,
+      version,
+      repository,
+      url,
+      description,
+    })
     .select();
 
   if (error) {
