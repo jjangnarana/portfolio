@@ -179,6 +179,18 @@ app.post('/about/update', async (request, response) => {
   return response.status(200).send(data);
 });
 
+app.get('/projects/modify', async (request, response) => {
+  const { name } = request.body;
+  const { data, error } = await supabase.from('projects').select(name);
+
+  if (error) {
+    console.log(error);
+    return response.status(500).send('서버 오류 발생');
+  }
+  console.log(data);
+  return response.status(200).send(data);
+});
+
 app.post('/projects/create', async (request, response) => {
   const { name, version, repository, url, description } = request.body;
   const { data, error } = await supabase
