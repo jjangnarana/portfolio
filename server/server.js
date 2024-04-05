@@ -7,8 +7,8 @@ const { zip } = require('zip-a-folder');
 const path = require('path');
 const zipfile = promisify(zip);
 const directoryPath = path.join(__dirname, 'converted');
-const upload = multer({ dest: 'uploads/' });
 const app = express();
+const upload = multer({ dest: 'uploads/' });
 const port = 3002;
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
@@ -55,6 +55,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
 
 app.post('/convert', upload.array('files'), async (request, response) => {
   const files = request.files;
@@ -192,7 +193,8 @@ app.get('/projects/modify', async (request, response) => {
 });
 
 app.post('/projects/create', async (request, response) => {
-  const { name, version, repository, url, description } = request.body;
+  const { name, version, repository, url, description, image_path } =
+    request.body;
   const { data, error } = await supabase
     .from('projects')
     .insert({
@@ -201,6 +203,7 @@ app.post('/projects/create', async (request, response) => {
       repository,
       url,
       description,
+      image_path,
     })
     .select();
 
@@ -212,6 +215,12 @@ app.post('/projects/create', async (request, response) => {
   return response.status(200).send(data);
 });
 
+app.post('/uploadImg', upload.single('image'), (request, response) => {
+  const imgPath = `${request.protocol}://${request.get('host')}/uploads/${
+    request.file.filename
+  }`;
+  response.json({ imgPath });
+});
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

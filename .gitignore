@@ -13,7 +13,7 @@
 
 #session
 /server/sessions
-
+/server/uploads
 # misc
 .DS_Store
 .env.local
