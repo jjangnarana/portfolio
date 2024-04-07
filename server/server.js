@@ -180,9 +180,34 @@ app.post('/about/update', async (request, response) => {
   return response.status(200).send(data);
 });
 
-app.get('/projects/modify', async (request, response) => {
-  const { name } = request.body;
-  const { data, error } = await supabase.from('projects').select(name);
+app.get('/projects/get', async (request, response) => {
+  const { id } = request.query;
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', id);
+
+  if (error) {
+    console.log(error);
+    return response.status(500).send('서버 오류 발생');
+  }
+  return response.status(200).send(data[0]);
+});
+
+app.post('/projects/create', async (request, response) => {
+  const { name, version, repository, url, description, image_path } =
+    request.body;
+  const { data, error } = await supabase
+    .from('projects')
+    .insert({
+      name,
+      version,
+      repository,
+      url,
+      description,
+      image_path,
+    })
+    .select();
 
   if (error) {
     console.log(error);
@@ -192,12 +217,13 @@ app.get('/projects/modify', async (request, response) => {
   return response.status(200).send(data);
 });
 
-app.post('/projects/create', async (request, response) => {
-  const { name, version, repository, url, description, image_path } =
+app.post('/projects/modify', async (request, response) => {
+  const { id, name, version, repository, url, description, image_path } =
     request.body;
   const { data, error } = await supabase
     .from('projects')
-    .insert({
+    .upsert({
+      id,
       name,
       version,
       repository,
